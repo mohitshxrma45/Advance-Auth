@@ -1,7 +1,39 @@
-import joi from 'joi'
+import Joi from 'joi'
 
-export const registerSchema = joi.object({
-    name: joi.string().min(3).max(30).required(),
-    email: joi.string().email().required(),
-    password: joi.string().min(6).max(30).required()
-})
+const signupValidation = (req, res, next) => {
+
+    const schema = Joi.object({
+        name: Joi.string().min(3).required(),
+
+        email: Joi.string().email().required(),
+
+        password: Joi.string().min(5).required()
+    });
+
+    const { error } = schema.validate(req.body);
+
+    if (error) {
+        return res.status(400).json({ message: "Bad request", error })
+    }
+
+
+    next();
+}
+
+const loginValidation = (req, res, next) => {
+    const schema = Joi.object({
+        email: Joi.string().email().required(),
+        password: Joi.string().min(5).required()
+    });
+    const { error } = schema.validate(req.body);
+
+    if (error) {
+        return res.status(400).json({ message: "Bad request", error })
+    }
+    next();
+}
+
+export default {
+    signupValidation,
+    loginValidation
+}

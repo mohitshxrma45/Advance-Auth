@@ -1,3 +1,8 @@
+import nodemailer from "nodemailer";
+
+
+
+
 export const sendEmail = async (email, otp) => {
     try {
         const transporter = nodemailer.createTransport({

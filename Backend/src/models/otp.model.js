@@ -1,3 +1,7 @@
+import mongoose from "mongoose"
+
+
+
 const otpSchema = new mongoose.Schema({
 
     name:{
@@ -29,3 +33,6 @@ const otpSchema = new mongoose.Schema({
 },{
     timestamps:true
 })
+
+const otpModel = mongoose.model("otp", otpSchema);
+export default otpModel;
