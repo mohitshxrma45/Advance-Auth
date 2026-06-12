@@ -30,6 +30,10 @@ const otpSchema = new mongoose.Schema({
     purpose: {
         type: String,
         default: "register"
+    },
+    resendCount: {
+        type: Number,
+        default: 0
     }
 
 }, {

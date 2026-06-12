@@ -1,13 +1,29 @@
 import React, { useContext } from 'react';
 import { motion } from 'framer-motion';
-import { User, ShieldCheck, Calendar, Hash, Mail } from 'lucide-react';
+import { User, ShieldCheck, Calendar, Hash, LogOut } from 'lucide-react'; // Imported LogOut icon
 import { AuthContext } from '../context/AuthContext';
+import { loginUser, logoutUser } from '../services/authApi';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const Profile = () => {
-  const { user } = useContext(AuthContext)
+  // Destructured logout from your AuthContext
+  const { user, logout } = useContext(AuthContext);
+  const navigate = useNavigate()
+  const userData = user;
 
-  const userData=user;
-  
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success("Logout successfully")
+      navigate("/");
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Server Error"
+      );
+    }
+  };
 
   return (
     <div className="relative min-h-screen w-full bg-black text-white font-sans flex flex-col justify-between overflow-hidden">
@@ -32,7 +48,7 @@ const Profile = () => {
             <User size={44} className="text-zinc-400" strokeWidth={1.5} />
 
             {/* Conditional Blue Tick Mapping based on user.isVerified */}
-            {userData.isVerified && (
+            {userData?.isVerified && (
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
@@ -47,12 +63,12 @@ const Profile = () => {
           {/* User Display Identifiers */}
           <div className="text-center mt-4 space-y-1">
             <div className="flex items-center justify-center gap-1.5">
-              <h2 className="text-2xl font-bold tracking-tight text-white">{userData.name}</h2>
-              {userData.isVerified && (
+              <h2 className="text-2xl font-bold tracking-tight text-white">{userData?.name}</h2>
+              {userData?.isVerified && (
                 <ShieldCheck size={18} className="text-blue-500 fill-blue-500/20" strokeWidth={2} />
               )}
             </div>
-            <p className="text-sm text-zinc-500 tracking-wide">{userData.email}</p>
+            <p className="text-sm text-zinc-500 tracking-wide">{userData?.email}</p>
           </div>
         </div>
 
@@ -71,7 +87,7 @@ const Profile = () => {
               <Hash size={16} className="text-zinc-500" />
               <span className="text-sm font-medium">Node ID</span>
             </div>
-            <span className="text-sm font-mono text-zinc-300 font-semibold">{userData._id}</span>
+            <span className="text-sm font-mono text-zinc-300 font-semibold">{userData?.id}</span>
           </div>
 
           {/* Security Node Status */}
@@ -80,8 +96,8 @@ const Profile = () => {
               <ShieldCheck size={16} className="text-zinc-500" />
               <span className="text-sm font-medium">Status</span>
             </div>
-            <span className={`text-xs uppercase font-bold tracking-wider px-2.5 py-1 rounded-full ${userData.isVerified ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}`}>
-              {userData.isVerified ? 'Verified' : 'Pending'}
+            <span className={`text-xs uppercase font-bold tracking-wider px-2.5 py-1 rounded-full ${userData?.isVerified ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}`}>
+              {userData?.isVerified ? 'Verified' : 'Pending'}
             </span>
           </div>
 
@@ -91,14 +107,16 @@ const Profile = () => {
               <Calendar size={16} className="text-zinc-500" />
               <span className="text-sm font-medium">Created At</span>
             </div>
-            <span className="text-sm text-zinc-300 font-medium">{userData.createdAt}</span>
+            <span className="text-sm text-zinc-300 font-medium">{userData?.createdAt}</span>
           </div>
 
         </motion.div>
       </div>
 
-      {/* Bottom Navigation Area - Only Profile Logo Remaining */}
-      <div className="w-full bg-zinc-950/40 backdrop-blur-md border-t border-zinc-900/60 py-4 flex justify-center items-center z-10">
+      {/* Bottom Navigation Area - Profile and Logout */}
+      <div className="w-full bg-zinc-950/40 backdrop-blur-md border-t border-zinc-900/60 py-4 flex justify-around items-center z-10">
+
+        {/* Profile Tab */}
         <motion.div
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -109,6 +127,20 @@ const Profile = () => {
           </div>
           <span className="text-[10px] font-bold tracking-widest uppercase">Profile</span>
         </motion.div>
+
+        {/* Logout Tab */}
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handleLogout}
+          className="flex flex-col items-center gap-1 text-zinc-500 hover:text-red-400 transition-colors duration-200 cursor-pointer"
+        >
+          <div className="p-2 bg-zinc-900 rounded-full border border-zinc-800 evaluation-logout-btn hover:bg-red-500/10 hover:border-red-500/20 transition-colors duration-200">
+            <LogOut size={20} strokeWidth={2} />
+          </div>
+          <span className="text-[10px] font-bold tracking-widest uppercase">Logout</span>
+        </motion.div>
+
       </div>
 
     </div>

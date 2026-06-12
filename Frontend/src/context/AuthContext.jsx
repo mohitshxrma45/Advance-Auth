@@ -1,5 +1,6 @@
 import React, { createContext, useState } from "react";
 import { loginUser, registerUser } from "../services/authApi";
+import { logoutUser } from "../services/authApi";
 
 export const AuthContext = createContext();
 
@@ -16,6 +17,10 @@ const AuthProvider = ({ children }) => {
         setUser(data.user);
         return data;
     };
+    const logout = async () => {
+        await logoutUser();
+        setUser(null);
+    };
 
     return (
         <AuthContext.Provider
@@ -23,6 +28,7 @@ const AuthProvider = ({ children }) => {
                 user,
                 register,
                 login,
+                logout
             }}
         >
             {children}

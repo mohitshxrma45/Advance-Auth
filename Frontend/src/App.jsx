@@ -9,6 +9,7 @@ import GuestRoute from "./components/GuestRoute";
 import ProtectedRoute from "./components/ProtectedRoutes";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ResetPassword from "./pages/ResetPassword";
 
 function App() {
   return (
@@ -23,7 +24,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/verify-Otp" element={<VerifyOtp />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<VerifyOtp />} />
+        <Route path="/reset-password" element={<ResetPassword/>} />
         <Route path="/profile" element={
           <ProtectedRoute>
             <Profile />

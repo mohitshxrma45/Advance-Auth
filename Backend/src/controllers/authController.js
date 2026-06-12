@@ -299,7 +299,7 @@ export const forgotPassword = async (req, res) => {
 
     try {
 
-        const { email } = req.body;
+        const { email, purpose } = req.body;
 
         const isUserExist = await userModel.findOne({ email })
 
@@ -386,9 +386,15 @@ export const verifyResetOtp = async (req, res) => {
         );
 
 
+        res.cookie("resetToken", resetToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            maxAge: 10 * 60 * 1000
+        });
+
         return res.status(200).json({
-            message: "OTP verified successfully",
-            resetToken
+            message: "OTP verified successfully"
         });
 
 
@@ -406,7 +412,7 @@ export const resetPassword = async (req, res) => {
 
         const { password } = req.body;
 
-        const token = req.headers.authorization?.split(" ")[1];
+        const token = req.cookies.resetToken;
 
         if (!token) {
             return res.status(401).json({
@@ -435,7 +441,13 @@ export const resetPassword = async (req, res) => {
 
         await user.save();
 
-        res.status(200).json({
+        res.clearCookie("resetToken", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+        });
+
+        return res.status(200).json({
             message: "Password Reset successfully"
         });
 

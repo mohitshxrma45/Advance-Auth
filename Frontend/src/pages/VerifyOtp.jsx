@@ -1,7 +1,8 @@
 import React, { useRef, useState } from 'react';
-import { verifyOtp } from "../services/authApi";
+import { verifyOtp, verifyResetOtp } from "../services/authApi";
 import { motion } from 'framer-motion';
-import { useLocation, useNavigate } from "react-router-dom";
+import { data, useLocation, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const VerifyOtp = () => {
 
@@ -9,7 +10,7 @@ const VerifyOtp = () => {
 
   const location = useLocation();
   const email = location.state?.email;
-
+  const purpose = location.state?.purpose;
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
 
   // 6 individual inputs ke liye references taaki typing par automatic focus jump kare
@@ -43,20 +44,31 @@ const VerifyOtp = () => {
 
     try {
       const otpCode = otp.join("");
-      if (!email) {
-        console.log("Email not found");
-        return;
+
+      if (purpose === "verify-email") {
+
+        await verifyOtp({
+          email,
+          otp: otpCode
+        });
+
+        toast.success(data.message)
+        navigate("/profile");
+
+      } else if (purpose === "reset-password") {
+
+        await verifyResetOtp({
+          email,
+          otp: otpCode
+        });
+
+        toast.success("OTP verified successfully");
+
+        navigate("/reset-password", {
+          state: { email }
+        });
       }
-
-      const res = await verifyOtp({
-        email,
-        otp: otpCode
-      });
-      toast.success("Email verified successfully");
-
-      navigate('/profile')
-
-      console.log(res);
+      setOtp("")
     } catch (error) {
       toast.error(
         error.response?.data?.message || "Invalid OTP"
@@ -141,21 +153,6 @@ const VerifyOtp = () => {
 
         </form>
       </div>
-
-      {/* Footer Request Area */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8, duration: 0.6 }}
-        className="w-full max-w-sm flex flex-col items-center gap-4 text-center mt-auto"
-      >
-        <p className="text-sm text-zinc-400 tracking-wide">
-          Didn't receive the code?{' '}
-          <button type="button" className="text-white font-semibold hover:underline transition-all bg-transparent border-none outline-none cursor-pointer">
-            Resend OTP
-          </button>
-        </p>
-      </motion.div>
 
     </div>
   );

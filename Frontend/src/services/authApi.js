@@ -38,27 +38,18 @@ export const logoutUser = async () => {
 
 // Forgot Password
 export const forgotPassword = async (emailData) => {
-    const response = await axiosInstance.post(
-        "/forgot-password",
-        emailData
-    );
+    const response = await axiosInstance.post("/forgot-password", emailData);
     return response.data;
 };
 
 // Verify Reset OTP
 export const verifyResetOtp = async (otpData) => {
-    const response = await axiosInstance.post(
-        "/verify-reset-otp",
-        otpData
-    );
+    const response = await axiosInstance.post("/verify-reset-otp", otpData);
     return response.data;
 };
 
 // Reset Password
 export const resetPassword = async (passwordData) => {
-    const response = await axiosInstance.post(
-        "/reset-password",
-        passwordData
-    );
+    const response = await axiosInstance.post("/reset-password", passwordData);
     return response.data;
 };

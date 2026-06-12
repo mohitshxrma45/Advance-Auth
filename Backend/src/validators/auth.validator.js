@@ -64,9 +64,6 @@ export const verifyResetOtpSchema = Joi.object({
 export const resetPasswordSchema = Joi.object({
     password: Joi.string()
         .min(8)
-        .pattern(
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/
-        )
         .required()
 }).options({
     allowUnknown: false

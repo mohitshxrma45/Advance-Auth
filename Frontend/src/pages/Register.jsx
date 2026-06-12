@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { AuthContext } from '../context/AuthContext';
 import { toast } from "react-toastify";
 import { useNavigate } from 'react-router-dom';
+import { verifyOtp, verifyResetOtp } from "../services/authApi";
 
 
 const Register = () => {
@@ -26,7 +27,10 @@ const Register = () => {
       setPassword("");
 
       navigate("/verify-otp", {
-        state: { email }
+        state: {
+          email,
+          purpose: "verify-email"
+        }
       });
 
     } catch (error) {
