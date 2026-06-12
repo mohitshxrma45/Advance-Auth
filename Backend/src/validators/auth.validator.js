@@ -1,39 +1,76 @@
 import Joi from 'joi'
 
-const signupValidation = (req, res, next) => {
 
-    const schema = Joi.object({
-        name: Joi.string().min(3).required(),
+export const registerSchema = Joi.object({
+    name: Joi.string()
+        .min(3)
+        .max(30)
+        .required(),
 
-        email: Joi.string().email().required(),
+    email: Joi.string()
+        .email()
+        .required(),
 
-        password: Joi.string().min(5).required()
-    });
+    password: Joi.string()
+        .min(8)
+        .required()
+}).options({
+    allowUnknown: false
+});
 
-    const { error } = schema.validate(req.body);
+export const loginSchema = Joi.object({
+    email: Joi.string()
+        .email()
+        .required(),
 
-    if (error) {
-        return res.status(400).json({ message: "Bad request", error })
-    }
+    password: Joi.string()
+        .required()
+}).options({
+    allowUnknown: false
+});
+
+export const verifyOtpSchema = Joi.object({
+    email: Joi.string()
+        .email()
+        .required(),
+
+    otp: Joi.string()
+        .length(6)
+        .required()
+}).options({
+    allowUnknown: false
+});
+
+export const forgotPasswordSchema = Joi.object({
+    email: Joi.string()
+        .email()
+        .required()
+}).options({
+    allowUnknown: false
+});
+
+export const verifyResetOtpSchema = Joi.object({
+    email: Joi.string()
+        .email()
+        .required(),
+
+    otp: Joi.string()
+        .length(6)
+        .required()
+}).options({
+    allowUnknown: false
+});
+
+export const resetPasswordSchema = Joi.object({
+    password: Joi.string()
+        .min(8)
+        .pattern(
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/
+        )
+        .required()
+}).options({
+    allowUnknown: false
+});
 
 
-    next();
-}
 
-const loginValidation = (req, res, next) => {
-    const schema = Joi.object({
-        email: Joi.string().email().required(),
-        password: Joi.string().min(5).required()
-    });
-    const { error } = schema.validate(req.body);
-
-    if (error) {
-        return res.status(400).json({ message: "Bad request", error })
-    }
-    next();
-}
-
-export default {
-    signupValidation,
-    loginValidation
-}

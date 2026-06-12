@@ -5,7 +5,7 @@ import otpModel from "../models/otp.model.js";
 import { sendEmail } from "../services/email.service.js";
 import { generateAccessToken, generateRefreshToken } from "../services/tokenService.js";
 import { comparePassword } from "../utils/comparePassword.js";
-import nodemailer from "nodemailer";
+import jwt from 'jsonwebtoken'
 
 
 
@@ -28,6 +28,7 @@ export const register = async (req, res) => {
         if (!isEmailSend) {
             return res.status(500).json({ message: "Failed to send OTP email" });
         }
+        await otpModel.deleteMany({ email });
 
         await otpModel.create({
             name,
@@ -58,7 +59,12 @@ export const verifyOtp = async (req, res) => {
         }
 
         if (otpRecord.otpExpiry < Date.now()) {
-            return res.status(400).json({ message: "OTP expired" });
+
+            await otpModel.deleteOne({ email });
+
+            return res.status(400).json({
+                message: "OTP expired"
+            });
         }
 
         const isMatch = await comparePassword(otpRecord.otp, otp);
@@ -67,6 +73,13 @@ export const verifyOtp = async (req, res) => {
             return res.status(400).json({ message: "Invalid OTP" });
         }
 
+        const existingUser = await userModel.findOne({ email });
+
+        if (existingUser) {
+            return res.status(400).json({
+                message: "User already exists"
+            });
+        }
 
         const user = await userModel.create({
             name: otpRecord.name,
@@ -154,12 +167,17 @@ export const login = async (req, res) => {
             sameSite: "strict",
             maxAge: 15 * 60 * 1000
         })
-            .status(200).json({
-                success: true,
-                message: "Login successfull",
+        res.status(200).json({
+            success: true,
+            message: "Login successful",
+            user: {
+                id: isUser._id,
                 name: isUser.name,
-                id: isUser._id
-            })
+                email: isUser.email,
+                isVerified: isUser.isVerified,
+                createdAt: isUser.createdAt
+            }
+        });
 
 
     } catch (err) {
@@ -255,13 +273,13 @@ export const logout = async (req, res) => {
 
         res.clearCookie("refreshToken", {
             httpOnly: true,
-            secure: process.env.NODE_ENC === "production",
+            secure: process.env.NODE_ENV === "production",
             sameSite: "strict",
         });
 
         res.clearCookie("accessToken", {
             httpOnly: true,
-            secure: process.env.NODE_ENC === "production",
+            secure: process.env.NODE_ENV === "production",
             sameSite: "strict",
         })
 
@@ -289,10 +307,11 @@ export const forgotPassword = async (req, res) => {
             return res.status(404).json({ message: "User is not Registered" })
         }
 
-        const otp = generateOTP();
-        const hash = await hashPassword(otp);
+        const otp = generateOTP().toString();
+        const hashedOtp = await hashPassword(otp);
 
         const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
         const isEmailSend = await sendEmail(email, otp);
 
         if (!isEmailSend) {
@@ -307,10 +326,9 @@ export const forgotPassword = async (req, res) => {
 
         await otpModel.create({
             email,
-            otp: hash,
+            otp: hashedOtp,
             otpExpiry,
             purpose: "forgot-password"
-
         })
 
         return res.status(200).json({
@@ -335,28 +353,105 @@ export const verifyResetOtp = async (req, res) => {
         })
 
         if (!isUser) {
-            return res.status(401).json({ message: "User not Found" })
+            return res.status(404).json({ message: "User not Found" })
         }
 
         if (isUser.otpExpiry < Date.now()) {
-            return res.status(404).json({ message: "OTP is expired" })
 
+            await otpModel.deleteOne({
+                email,
+                purpose: "forgot-password"
+            });
+
+            return res.status(400).json({
+                message: "OTP expired"
+            });
         }
 
-        const compare = await comparePassword(isUser.otp, otp)
+        const compare = await comparePassword(isUser.otp, otp.toString())
 
         if (!compare) {
-            return res.status(404).json({ message: "OTP is not Match" })
+            return res.status(400).json({ message: "Invalid OTP" })
         }
 
-        res.status(200).json({
-            message: "OTP verified successfully"
-        })
+        await otpModel.deleteOne({
+            email,
+            purpose: "forgot-password"
+        });
+
+        const resetToken = jwt.sign(
+            { email },
+            process.env.RESET_SECRET,
+            { expiresIn: "10m" }
+        );
+
+
+        return res.status(200).json({
+            message: "OTP verified successfully",
+            resetToken
+        });
+
 
     } catch (error) {
         console.log(error);
-        res.status(401).json({ message: "Internal server error" })
+        res.status(500).json({ message: "Internal server error" })
 
     }
 
+}
+
+export const resetPassword = async (req, res) => {
+
+    try {
+
+        const { password } = req.body;
+
+        const token = req.headers.authorization?.split(" ")[1];
+
+        if (!token) {
+            return res.status(401).json({
+                message: "Reset token missing"
+            });
+        }
+
+        const decoded = jwt.verify(
+            token,
+            process.env.RESET_SECRET
+        );
+
+        const user = await userModel.findOne({
+            email: decoded.email
+        });
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+
+        const hash = await hashPassword(password);
+        user.password = hash;
+        user.refreshToken = null;
+
+        await user.save();
+
+        res.status(200).json({
+            message: "Password Reset successfully"
+        });
+
+    } catch (error) {
+
+        if (
+            error.name === "TokenExpiredError" ||
+            error.name === "JsonWebTokenError"
+        ) {
+            return res.status(401).json({
+                message: "Invalid or expired reset token"
+            });
+        }
+
+        return res.status(500).json({
+            message: "Internal server error"
+        });
+    }
 }
