@@ -10,7 +10,7 @@ dotenv.config();
 const app = express();
 
 app.use(cors({
-    origin: "https://advance-auth-ten.vercel.app",  // frontend URL
+    origin: "https://advance-auth-pp3cjl5c4-mohitshxrma45s-projects.vercel.app",  // frontend URL
     credentials: true
 }));
 
