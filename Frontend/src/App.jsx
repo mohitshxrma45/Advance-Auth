@@ -19,18 +19,30 @@ function App() {
           <GuestRoute>
             <Login />
           </GuestRoute>
-        }
-        />
-        <Route path="/register" element={<Register />} />
-        <Route path="/verify-Otp" element={<VerifyOtp />} />
+        } />
+
+        <Route path="/register" element={
+          <GuestRoute>
+            <Register />
+          </GuestRoute>
+        } />
+
+        <Route path="/verify-otp" element={
+          <GuestRoute>
+            <VerifyOtp />
+          </GuestRoute>
+        } />
+
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword/>} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+
         <Route path="/profile" element={
           <ProtectedRoute>
             <Profile />
           </ProtectedRoute>
-        }
-        />
+        } />
+
+        <Route path="*" element={<div>404 Not Found</div>} />
 
       </Routes>
 
