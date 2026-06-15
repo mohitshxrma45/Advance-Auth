@@ -3,24 +3,21 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
-import userRouter from "./routes/authRoutes.js";
-
 dotenv.config();
 
 const app = express();
 
-app.use(
-    cors({
-        origin: [
-            "https://advance-auth-41rw.vercel.app/",
-        ],
-        credentials: true,
-    })
-);
+app.use(cors());
+
+app.options("*", cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+app.get("/", (req, res) => {
+  res.send("Backend Working");
+});
 
 app.use("/api/auth", userRouter);
 
