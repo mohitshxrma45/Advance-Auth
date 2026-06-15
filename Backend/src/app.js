@@ -1,34 +1,27 @@
-import express from 'express';
-import dotenv from 'dotenv';
-import cookieParser from 'cookie-parser';
-import userRouter from './routes/authRoutes.js';
-import cors from 'cors';
+import express from "express";
+import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
+import cors from "cors";
+
+import userRouter from "./routes/authRoutes.js";
 
 dotenv.config();
 
 const app = express();
 
-const allowedOrigins = [
-    process.env.CLIENT_URL
-];
-
-app.use(cors({
-    origin: function (origin, callback) {
-        if (!origin) return callback(null, true);
-
-        if (allowedOrigins.includes(origin)) {
-            return callback(null, true);
-        }
-
-        return callback(new Error("CORS blocked: " + origin));
-    },
-    credentials: true
-}));
+app.use(
+    cors({
+        origin: [
+            "https://advance-auth-41rw.vercel.app/",
+        ],
+        credentials: true,
+    })
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.use('/api/auth', userRouter);
+app.use("/api/auth", userRouter);
 
 export default app;
