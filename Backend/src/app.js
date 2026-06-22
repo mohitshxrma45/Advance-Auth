@@ -9,10 +9,19 @@ dotenv.config();
 
 const app = express();
 
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',')
+    : ["https://advance-auth-41rw.vercel.app"];
+
 const corsOptions = {
-    origin: [
-        "https://advance-auth-41rw.vercel.app",
-    ],
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like server-to-server, curl)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        // In non-production, allow any origin to simplify testing
+        if (process.env.NODE_ENV !== 'production') return callback(null, true);
+        return callback(new Error('Origin not allowed by CORS'));
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
