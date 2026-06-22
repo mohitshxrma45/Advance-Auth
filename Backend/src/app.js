@@ -9,14 +9,17 @@ dotenv.config();
 
 const app = express();
 
-app.use(
-    cors({
-        origin: [
-            "https://advance-auth-41rw.vercel.app/",
-        ],
-        credentials: true,
-    })
-);
+const corsOptions = {
+    origin: [
+        "https://advance-auth-41rw.vercel.app",
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use((req, res, next) => {
     console.log(req.method, req.url);
     next();
